@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.polito.tdp.food.model.Adiacenza;
 import it.polito.tdp.food.model.Condiment;
 import it.polito.tdp.food.model.Food;
 import it.polito.tdp.food.model.Portion;
@@ -108,5 +109,58 @@ public class FoodDao {
 			return null ;
 		}
 
+	}
+	public List<String> getCibi(int portions){
+		String sql = "SELECT distinct food.display_name as f1, COUNT(DISTINCT portion.portion_id) AS CNT " + 
+				"FROM food, `portion` " + 
+				"WHERE food.food_code=portion.food_code " + 
+				"GROUP BY food.food_code " + 
+				"HAVING CNT=? " +
+				"ORDER BY food.display_name ASC" ;
+		
+		List<String> result = new ArrayList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection() ;
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			st.setInt(1, portions);
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+				result.add(res.getString("f1")) ;
+			}
+			
+			conn.close();
+			return result ;
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null ;
+		}
+	}
+	public List<Adiacenza> getAdiacenze(){
+		String sql="SELECT f1.display_name as fd1, AVG(p1.saturated_fats) as media "
+				+ "FROM food f1, portion p1 "
+				+ "WHERE f1.food_code=p1.food_code "
+				+ "GROUP BY f1.display_name";
+		List<Adiacenza> list= new ArrayList<>();
+		try {
+			Connection conn = DBConnect.getConnection() ;
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+					list.add(new Adiacenza(res.getString("fd1"), res.getDouble("media")) );
+				}
+				
+			conn.close();
+			return list ;
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null ;
+		}
 	}
 }
